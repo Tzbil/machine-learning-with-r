@@ -2,7 +2,7 @@
 Serving as the notes and reference for machine learning with R
 
 ## Learning resources
-[Data Science and Machine Learning bootcamp with R](https://www.udemy.com/course/data-science-and-machine-learning-bootcamp-with-r/learn/lecture/5412840#questions)
+[Data Science and Machine Learning bootcamp with R](https://www.udemy.com/course/data-science-and-machine-learning-bootcamp-with-r/learn/lecture/5412840#questions)<br/>
 [ISLR](http://faculty.marshall.usc.edu/gareth-james/)
 
 ## Introduction
