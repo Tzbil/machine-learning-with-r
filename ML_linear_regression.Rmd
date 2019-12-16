@@ -1,0 +1,112 @@
+---
+title: "ML_linear_regression"
+author: "Tian Zhang"
+date: "12/15/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r initialize}
+library(ggplot2)
+library(ggthemes)
+library(data.table)
+library(dplyr)
+```
+
+## Data
+
+The data has the following features:
+datetime - hourly date + timestamp
+season - 1 = spring, 2 = summer, 3 = fall, 4 = winter
+holiday - whether the day is considered a holiday
+workingday - whether the day is neither a weekend nor holiday
+weather -
+        1: Clear, Few clouds, Partly cloudy, Partly cloudy
+        2: Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist
+        3: Light Snow, Light Rain + Thunderstorm + Scattered clouds, Light Rain + Scattered clouds
+        4: Heavy Rain + Ice Pallets + Thunderstorm + Mist, Snow + Fog
+temp - temperature in Celsius
+atemp - "feels like" temperature in Celsius
+humidity - relative humidity
+windspeed - wind speed
+casual - number of non-registered user rentals initiated
+registered - number of registered user rentals initiated
+count - number of total rentals
+
+```{r bike}
+bike <- fread("bikeshare.csv")
+head(bike)
+```
+
+## Exploratory Data Analysis
+
+```{r  , echo=FALSE}
+count_temp <- ggplot(bike, aes(x = temp, y = count, color = temp)) + geom_point(alpha = 0.5)
+count_temp
+```
+
+```{r, echo=FALSE}
+bike$datetime <- as.POSIXct(bike$datetime)
+count_date <- ggplot(bike, aes(x = datetime, y = count)) + 
+        geom_point(aes(color = temp),alpha = 0.5) +  scale_colour_gradient(high='red',low = "blue")
+count_date
+```
+
+```{r correlation}
+cor.temp_count <- cor(bike[,c("temp","count")])
+cor.temp_count
+```
+
+```{r  , echo=FALSE}
+count_season <- ggplot(bike, aes(x = season, y = count)) + 
+        geom_boxplot(aes(color = factor(season)),alpha = 0.5)
+count_season
+```
+
+## Feature Engineering
+```{r hour}
+to_hour <- function(x){
+        format(x, "%H")
+}
+bike$hour <- sapply(bike$datetime, to_hour)
+```
+
+```{r workingday hourly}
+workingday <- subset(bike, workingday == 1)
+count_hour <- ggplot(workingday, aes(x = hour, y = count)) +
+        geom_point(aes(color = temp), alpha = 0.5, position = position_jitter(w=1, h=0)) +
+        scale_colour_gradientn(colours = c('blue','purple','green','yellow','orange','red'))
+count_hour
+```
+
+```{r nonworkingday hourly}
+nonworkingday <- subset(bike, workingday == 0)
+count_hour <- ggplot(nonworkingday, aes(x = hour, y = count)) +
+        geom_point(aes(color = temp), alpha = 0.5, position = position_jitter(w=1, h=0)) +
+        scale_colour_gradientn(colours = c('blue','purple','green','yellow','orange','red'))
+count_hour
+```
+
+## Building the Model
+```{r temp.model}
+temp.model <- lm(count~temp, data = bike)
+summary(temp.model)
+```
+
+```{r predict}
+6.0462 + 9.1705*25
+temp.test <- data.frame(temp = c(25))
+predict(temp.model, temp.test)
+```
+
+```{r hour to number}
+bike$hour <- sapply(bike$hour, as.numeric)
+```
+
+```{r multi factor regression}
+multi.model <- lm(count ~ .-casual-registered-datetime-atemp, bike)
+summary(multi.model)
+```
